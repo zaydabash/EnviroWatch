@@ -66,6 +66,8 @@ export async function GET(req: Request) {
       );
     }
 
+    console.log(`[History] Fetching history for location ID: ${locId}`);
+
     // 1️⃣ Get the station's sensors to find its PM2.5 sensor
     const locRes = await fetch(`${OPENAQ_BASE}/locations/${locId}`, {
       headers: openAqHeaders(),
@@ -76,6 +78,7 @@ export async function GET(req: Request) {
       const txt = await locRes.text();
       // 404 means location doesn't exist - this is normal for some stations
       if (locRes.status === 404) {
+        console.log(`[History] Location ${locId} not found (404)`);
         return NextResponse.json(
           { error: "Location not found", upstreamStatus: 404 },
           { status: 404 },
@@ -92,15 +95,20 @@ export async function GET(req: Request) {
     const parsedLoc = locationSchema.parse(locJson);
     const sensors = parsedLoc.results[0]?.sensors ?? [];
 
+    console.log(`[History] Found ${sensors.length} sensors for location ${locId}`);
+
     const sensor = sensors.find(
       (s) => s.parameter.id === 2 || s.parameter.name.toLowerCase() === "pm25",
     );
     if (!sensor) {
+      console.log(`[History] No PM2.5 sensor found for location ${locId}`);
       return NextResponse.json(
         { error: "No PM2.5 sensor for this station" },
         { status: 404 },
       );
     }
+
+    console.log(`[History] Found PM2.5 sensor ID: ${sensor.id} for location ${locId}`);
 
     // 2️⃣ Fetch its last 7 days of measurements
     const now = new Date();
@@ -109,6 +117,8 @@ export async function GET(req: Request) {
     const measUrl = `${OPENAQ_BASE}/sensors/${sensor.id}/measurements?datetime_from=${encodeURIComponent(
       from,
     )}&limit=1000`;
+
+    console.log(`[History] Fetching measurements from: ${measUrl}`);
 
     const measRes = await fetch(measUrl, {
       headers: openAqHeaders(),
@@ -134,6 +144,8 @@ export async function GET(req: Request) {
 
     const measJson = await measRes.json();
     const parsedMeas = measurementsResponseSchema.parse(measJson);
+
+    console.log(`[History] Found ${parsedMeas.results.length} measurement points`);
 
     const series: SeriesPoint[] = parsedMeas.results
       .map((r) => ({

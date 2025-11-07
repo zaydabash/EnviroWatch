@@ -29,7 +29,14 @@ export function DetailsPanel() {
     fetch(`/api/openaq/history?stationId=${encodeURIComponent(selectedId)}&parameter=pm25`, {
       cache: "no-store",
     })
-      .then((res) => res.json())
+      .then((res) => {
+        // Check response status before parsing JSON
+        if (!res.ok && res.status === 404) {
+          // 404 means no history data - this is expected for many stations
+          return { error: "No history data available", upstreamStatus: 404 };
+        }
+        return res.json();
+      })
       .then((data) => {
         if (data.error) {
           // Only log actual server errors (500+) - missing data (404) and generic failures are normal
