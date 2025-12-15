@@ -1,6 +1,6 @@
 # EnviroWatch
 
-**EnviroWatch** — Homes.ai-style environmental dashboard for live air quality & anomalies.
+**EnviroWatch** — environmental dashboard for live air quality & anomalies.
 
 🌐 **Live Demo**: [envirowatch-three.vercel.app](https://envirowatch-three.vercel.app)
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-EnviroWatch is a production-ready web application that provides real-time environmental monitoring with a beautiful, modern UI. It displays live air quality data from stations around the world, visualizes anomalies, and provides interactive controls through a chat interface.
+EnviroWatch is a web application that provides real-time environmental monitoring with a beautiful, modern UI. It displays live air quality data from stations around the world, visualizes anomalies, and provides interactive controls through a chat interface.
 
 ## Tech Stack
 
