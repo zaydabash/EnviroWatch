@@ -25,7 +25,6 @@ function HomeContent() {
     aqiThreshold,
     showAnomaliesOnly,
     setCity,
-    setCenter,
     setRadius,
     setThreshold,
     setSelected,
@@ -58,6 +57,8 @@ function HomeContent() {
     if (selectParam) {
       setSelected(selectParam);
     }
+    // Intentionally runs once on mount to hydrate state from the initial URL only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Initial data fetch
@@ -65,6 +66,8 @@ function HomeContent() {
     refreshAll().catch((err) => {
       toast.error(`Failed to load data: ${err.message}`);
     });
+    // Intentionally runs once on mount; later refreshes are triggered by chat commands.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Show error toast
@@ -107,18 +110,21 @@ function HomeContent() {
   return (
     <div className="min-h-screen flex flex-col">
       {/* Top header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="text-sm font-semibold text-slate-50">EnviroWatch</div>
-            <div className="text-xs text-slate-400">·</div>
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+      <header className="border-b border-white/[0.06] bg-slate-950/60 backdrop-blur-xl sticky top-0 z-30">
+        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2.5 shrink-0">
+            <div className="text-sm font-semibold tracking-tight text-slate-50">EnviroWatch</div>
+            <div className="h-1 w-1 rounded-full bg-slate-600" />
+            <div className="flex items-center gap-1.5">
+              <div className="relative h-1.5 w-1.5">
+                <div className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                <div className="absolute inset-0 rounded-full bg-emerald-400" />
+              </div>
               <span className="text-xs text-slate-400">Live</span>
             </div>
           </div>
 
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1 flex justify-center min-w-0">
             <TopStats
               avgAqi={avgAqi}
               stations={filteredStations.length}
@@ -128,7 +134,7 @@ function HomeContent() {
             />
           </div>
 
-          <div className="text-xs text-slate-400 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700">
+          <div className="text-xs text-slate-300 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] shrink-0">
             {city}
           </div>
         </div>

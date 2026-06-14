@@ -65,22 +65,10 @@ All commands work in the chat panel on the left. Try these:
 
 Many OpenAQ stations don't have historical data available. This is normal and expected. The history endpoint will:
 - Return 404 if the location doesn't exist in OpenAQ v3
-- Return 404 if the location has no PM2.5 sensor
-- Return empty array if the sensor has no measurements in the last 7 days
+- Return 404 if the location has no sensor for the requested parameter (default `pm25`)
+- Return an empty series if the sensor has no measurements in the last 7 days
 
-**To debug history issues:**
-
-1. Check your terminal logs when you click a station - you'll see:
-   - `[History] Fetching history for location ID: X`
-   - `[History] Found X sensors for location Y`
-   - `[History] Found PM2.5 sensor ID: Z`
-   - `[History] Found X measurement points`
-
-2. If you see "Location not found (404)" - that station doesn't exist in OpenAQ v3's database
-
-3. If you see "No PM2.5 sensor found" - that location doesn't have a PM2.5 sensor
-
-4. If you see "Found 0 measurement points" - the sensor exists but has no data in the last 7 days
+When this happens, the Details Panel shows a "No history data available" message instead of the chart. This is expected behavior for stations without recent PM2.5 history, not an application error.
 
 **Note:** OpenAQ v3 is relatively new and many stations from v2 may not have migrated or may not have historical data available. This is a limitation of the data source, not your app.
 

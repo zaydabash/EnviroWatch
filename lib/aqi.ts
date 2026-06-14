@@ -23,14 +23,18 @@ const pm25Breakpoints: Breakpoint[] = [
 ];
 
 export function pm25ToAqi(pm25: number): { value: number; band: AqiBand } {
+  // Low-cost sensors can report small negative values due to noise; treat
+  // anything below 0 as 0 so it falls into the "good" breakpoint.
+  const concentration = Math.max(0, pm25);
+
   const bp =
-    pm25Breakpoints.find(b => pm25 >= b.cLow && pm25 <= b.cHigh) ??
+    pm25Breakpoints.find(b => concentration >= b.cLow && concentration <= b.cHigh) ??
     pm25Breakpoints[pm25Breakpoints.length - 1];
 
   const { cLow, cHigh, iLow, iHigh, band } = bp;
 
   const value =
-    ((iHigh - iLow) / (cHigh - cLow)) * (pm25 - cLow) + iLow;
+    ((iHigh - iLow) / (cHigh - cLow)) * (concentration - cLow) + iLow;
 
   return { value: Math.round(value), band };
 }

@@ -87,33 +87,10 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         throw new Error(stationsData.error);
       }
 
-      const stations: Station[] = Array.isArray(stationsData) ? stationsData : stationsData.stations || [];
-
-      // Only recompute center if we have stations AND they're reasonably close to the expected city location
-      // This prevents averaging global stations that might skew the center
-      let newCenter = state.center;
-      if (stations.length > 0) {
-        // For San Francisco, expect stations roughly in the area
-        // If city is SF, only update center if stations are in reasonable bounds
-        const isSF = state.city.toLowerCase().includes("san francisco") || state.city.toLowerCase() === "sf";
-        if (isSF) {
-          // San Francisco bounds: roughly -122.5 to -122.3 lon, 37.7 to 37.8 lat
-          const sfStations = stations.filter(
-            (s) => s.lon >= -122.6 && s.lon <= -122.3 && s.lat >= 37.6 && s.lat <= 37.9
-          );
-          if (sfStations.length > 0) {
-            const avgLon = sfStations.reduce((sum, s) => sum + s.lon, 0) / sfStations.length;
-            const avgLat = sfStations.reduce((sum, s) => sum + s.lat, 0) / sfStations.length;
-            newCenter = [avgLon, avgLat];
-          }
-          // Otherwise keep default SF center
-        } else {
-          // For other cities, compute center from all stations
-          const avgLon = stations.reduce((sum, s) => sum + s.lon, 0) / stations.length;
-          const avgLat = stations.reduce((sum, s) => sum + s.lat, 0) / stations.length;
-          newCenter = [avgLon, avgLat];
-        }
-      }
+      const stations: Station[] = stationsData.stations ?? [];
+      const newCenter: [number, number] = stationsData.center
+        ? [stationsData.center.lon, stationsData.center.lat]
+        : state.center;
 
       set({ stations, center: newCenter });
 
@@ -165,7 +142,7 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
               return { id: station.id, anomaly };
             }
           }
-        } catch (err) {
+        } catch {
           // Silently fail for individual stations
         }
         return null;

@@ -7,10 +7,11 @@ import type { Station, Pollutants } from "@/types";
 export const dynamic = "force-dynamic";
 
 const OPENAQ_BASE = "https://api.openaq.org/v3";
+const GEOCODING_BASE = "https://geocoding-api.open-meteo.com/v1/search";
+const SEARCH_RADIUS_METERS = 25000; // OpenAQ v3 max radius
 
 function openAqHeaders() {
   const key = process.env.OPENAQ_API_KEY;
-  console.log("OPENAQ key present?", !!key); // debug
   return {
     "User-Agent": "EnviroWatch/1.0 (portfolio app)",
     Accept: "application/json",
@@ -59,6 +60,39 @@ const latestResponseSchema = z.object({
   results: z.array(latestMeasurementSchema),
 });
 
+const geocodingResponseSchema = z.object({
+  results: z
+    .array(
+      z.object({
+        latitude: z.number(),
+        longitude: z.number(),
+        name: z.string(),
+      }),
+    )
+    .optional(),
+});
+
+async function geocodeCity(
+  city: string,
+): Promise<{ lat: number; lon: number; name: string } | null> {
+  const url = `${GEOCODING_BASE}?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+
+  const res = await fetch(url, {
+    headers: { "User-Agent": "EnviroWatch/1.0 (portfolio app)" },
+    cache: "no-store",
+  });
+
+  if (!res.ok) return null;
+
+  const json = await res.json();
+  const parsed = geocodingResponseSchema.parse(json);
+  const match = parsed.results?.[0];
+
+  if (!match) return null;
+
+  return { lat: match.latitude, lon: match.longitude, name: match.name };
+}
+
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
@@ -69,36 +103,16 @@ export async function GET(req: Request) {
       "San Francisco";
 
     const city = searchParams.get("city") || envDefault;
-    console.log("Fetching stations for city:", city);
 
-    // For US cities, add ISO filter to ensure we only get US stations
-    const isUSCity = city.toLowerCase().includes("san francisco") || 
-                     city.toLowerCase().includes("san jose") ||
-                     city.toLowerCase().includes("los angeles") ||
-                     city.toLowerCase().includes("new york") ||
-                     city.toLowerCase().includes("chicago") ||
-                     city.toLowerCase().includes("boston") ||
-                     city.toLowerCase().includes("seattle") ||
-                     city.toLowerCase().includes("portland") ||
-                     city.toLowerCase().includes("miami") ||
-                     city.toLowerCase().includes("houston") ||
-                     city.toLowerCase().includes("phoenix") ||
-                     city.toLowerCase().includes("philadelphia") ||
-                     city.toLowerCase().includes("dallas") ||
-                     city.toLowerCase().includes("austin") ||
-                     city.toLowerCase().includes("denver") ||
-                     city.toLowerCase().includes("atlanta") ||
-                     city.toLowerCase().includes("detroit") ||
-                     city.toLowerCase().includes("minneapolis") ||
-                     city.toLowerCase().includes("washington");
-
-    // 1) locations in this city with PM2.5 (parameter id 2)
-    let locationsUrl = `${OPENAQ_BASE}/locations?locality=${encodeURIComponent(city)}&parameters_id=2&limit=50`;
-    
-    // Add ISO country code filter for US cities to prevent global results
-    if (isUSCity) {
-      locationsUrl += `&iso=US`;
+    const geocoded = await geocodeCity(city);
+    if (!geocoded) {
+      return NextResponse.json(
+        { error: `Could not find a location for "${city}"` },
+        { status: 404 },
+      );
     }
+
+    const locationsUrl = `${OPENAQ_BASE}/locations?coordinates=${geocoded.lat},${geocoded.lon}&radius=${SEARCH_RADIUS_METERS}&parameters_id=2&limit=50`;
 
     const locRes = await fetch(locationsUrl, {
       headers: openAqHeaders(),
@@ -185,9 +199,10 @@ export async function GET(req: Request) {
       (s): s is Station => s !== null
     );
 
-    console.log("Returning station count:", stations.length);
-
-    return NextResponse.json(stations);
+    return NextResponse.json({
+      stations,
+      center: { lat: geocoded.lat, lon: geocoded.lon },
+    });
   } catch (err) {
     console.error("Error in /api/openaq/stations", err);
     return NextResponse.json(

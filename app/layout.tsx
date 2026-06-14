@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-const inter = Inter({
+const geistSans = Geist({
   subsets: ["latin"],
-  variable: "--font-inter",
+  variable: "--font-geist-sans",
+});
+
+const geistMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
 export const metadata: Metadata = {
-  title: "EnviroWatch — Live Environmental Dashboard",
+  title: "EnviroWatch - Live Environmental Dashboard",
   description: "Homes.ai-style environmental dashboard for live air quality & anomalies",
 };
 
@@ -21,7 +26,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${inter.variable} font-sans antialiased bg-gradient-to-b from-slate-950 to-slate-900 text-slate-50`}
+        className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-slate-50`}
       >
         {children}
         <Toaster />

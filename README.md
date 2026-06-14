@@ -1,8 +1,8 @@
 # EnviroWatch
 
-**EnviroWatch** — environmental dashboard for live air quality & anomalies.
+**EnviroWatch** - environmental dashboard for live air quality & anomalies.
 
-🌐 **Live Demo**: [envirowatch-three.vercel.app](https://envirowatch-three.vercel.app)
+**Live Demo**: [envirowatch-three.vercel.app](https://envirowatch-three.vercel.app)
 
 ![EnviroWatch Dashboard](./readme.png)
 
@@ -26,7 +26,8 @@ EnviroWatch is a web application that provides real-time environmental monitorin
 
 ## Live Data Sources
 
-- **Air Quality**: [OpenAQ](https://openaq.org/) (no API key required)
+- **Air Quality**: [OpenAQ v3](https://openaq.org/) (requires a free API key)
+- **Geocoding**: [Open-Meteo Geocoding](https://open-meteo.com/en/docs/geocoding-api) (no API key required) - turns city names into coordinates for the OpenAQ query
 - **Weather**: [Open-Meteo](https://open-meteo.com/) (no API key required)
 - **Map Tiles**: MapLibre / MapTiler demo styles (optional MapTiler key for custom styles)
 
@@ -36,11 +37,11 @@ EnviroWatch is a web application that provides real-time environmental monitorin
 - **Station Details** with 7-day PM2.5 history charts
 - **Anomaly Scoring** computed via z-score vs 7-day median PM2.5
 - **Chat Commands** for interactive control:
-  - `set city <name>` — Switch to a different city
-  - `filter aqi > <N>` — Filter stations by AQI threshold
-  - `radius <km>` — Adjust map radius
-  - `show anomalies` / `hide anomalies` — Toggle anomaly filter
-  - `select <id>` or `select "<name>"` — Select a station
+  - `set city <name>` - Switch to a different city
+  - `filter aqi > <N>` - Filter stations by AQI threshold
+  - `radius <km>` - Adjust map radius
+  - `show anomalies` / `hide anomalies` - Toggle anomaly filter
+  - `select <id>` or `select "<name>"` - Select a station
 - **Shareable URLs** with query parameters for city, filters, radius, and selected station
 - **Dark Theme** with glassy card UI matching Homes.ai aesthetic
 - **Responsive Design** with mobile-friendly layout
@@ -54,27 +55,30 @@ EnviroWatch is a web application that provides real-time environmental monitorin
 ### Setup
 
 1. **Install dependencies**:
-   ```bash
+```bash
    pnpm install
    # or
    npm install
    ```
 
-2. **Configure environment** (optional):
+2. **Configure environment** (required):
    Create `.env.local` in the project root:
    ```env
+   OPENAQ_API_KEY=your_openaq_key_here
    NEXT_PUBLIC_MAPTILER_KEY=your_key_here
    DEFAULT_CITY=San Francisco
    ```
-   
-   Note: MapTiler key is optional. The app will use free MapLibre demo tiles if not provided.
+
+   - `OPENAQ_API_KEY` is **required**. OpenAQ v3 returns `401 Unauthorized` for all requests without an API key. Get a free key by signing up at [explore.openaq.org](https://explore.openaq.org/) (Account → API Keys).
+   - `NEXT_PUBLIC_MAPTILER_KEY` is optional. The app will use free MapLibre demo tiles if not provided.
+   - `DEFAULT_CITY` is optional and defaults to "San Francisco".
 
 3. **Run development server**:
    ```bash
-   pnpm dev
-   # or
+pnpm dev
+# or
    npm run dev
-   ```
+```
 
 4. **Open browser**:
    Navigate to [http://localhost:3000](http://localhost:3000)
@@ -98,9 +102,10 @@ EnviroWatch is a web application that provides real-time environmental monitorin
    - Select your GitHub repository
    - Vercel will auto-detect Next.js settings
 
-3. **Configure Environment Variables** (optional):
+3. **Configure Environment Variables**:
    - In Vercel project settings, add:
-     - `NEXT_PUBLIC_MAPTILER_KEY` (if using MapTiler)
+     - `OPENAQ_API_KEY` (**required** - get a free key from [explore.openaq.org](https://explore.openaq.org/))
+     - `NEXT_PUBLIC_MAPTILER_KEY` (optional, if using MapTiler)
      - `DEFAULT_CITY` (optional, defaults to "San Francisco")
 
 4. **Deploy**:
@@ -150,9 +155,9 @@ envirowatch/
 
 All API routes are serverless functions under `app/api/`:
 
-- `GET /api/openaq/stations?city=<name>` — Fetch latest measurements for a city
-- `GET /api/openaq/history?stationId=<id>&parameter=pm25` — Fetch 7-day PM2.5 history
-- `GET /api/weather?lat=<lat>&lon=<lon>` — Fetch current weather
+- `GET /api/openaq/stations?city=<name>` - Geocodes the city name with Open-Meteo, then fetches OpenAQ stations within 25km. Returns `{ stations: Station[], center: { lat, lon } }`
+- `GET /api/openaq/history?stationId=<id>&parameter=pm25` - Fetch 7-day PM2.5 history
+- `GET /api/weather?lat=<lat>&lon=<lon>` - Fetch current weather
 
 ## Usage Examples
 
@@ -169,11 +174,11 @@ hide anomalies
 
 ### URL Parameters
 
-- `?city=San%20Jose` — Set city
-- `?aqi_gt=100` — Filter by AQI > 100
-- `?radius=5` — Set radius to 5 km
-- `?anomalies=1` — Show anomalies only
-- `?select=<station_id>` — Select a station
+- `?city=San%20Jose` - Set city
+- `?aqi_gt=100` - Filter by AQI > 100
+- `?radius=5` - Set radius to 5 km
+- `?anomalies=1` - Show anomalies only
+- `?select=<station_id>` - Select a station
 
 Example: `https://envirowatch.vercel.app?city=Los%20Angeles&aqi_gt=150&radius=10&anomalies=1`
 

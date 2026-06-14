@@ -7,6 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAppStore } from "@/store/useAppStore";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 type Message = {
   id: string;
@@ -15,9 +16,6 @@ type Message = {
 };
 
 export function ChatPanel() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const scrollRef = useRef<HTMLDivElement>(null);
   const {
     city,
     setCity,
@@ -29,22 +27,20 @@ export function ChatPanel() {
     refreshAll,
     stations,
   } = useAppStore();
-
-  useEffect(() => {
-    // Seed initial messages
-    setMessages([
-      {
-        id: "1",
-        role: "system",
-        text: `Hi, I'm EnviroWatch. I'm monitoring air quality in ${city}.`,
-      },
-      {
-        id: "2",
-        role: "system",
-        text: "Try commands like: set city San Jose, filter aqi > 100, show anomalies.",
-      },
-    ]);
-  }, []);
+  const [messages, setMessages] = useState<Message[]>(() => [
+    {
+      id: "1",
+      role: "system",
+      text: `Hi, I'm EnviroWatch. I'm monitoring air quality in ${city}.`,
+    },
+    {
+      id: "2",
+      role: "system",
+      text: "Try commands like: set city San Jose, filter aqi > 100, show anomalies.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Auto-scroll to bottom
@@ -186,40 +182,43 @@ export function ChatPanel() {
       {
         id: (Date.now() + 1).toString(),
         role: "system",
-        text: "Got it — use one of the commands above to change the view.",
+        text: "Got it - use one of the commands above to change the view.",
       },
     ]);
   };
 
   return (
-    <Card className="bg-gradient-to-b from-slate-950/80 to-slate-900/80 border-slate-800 rounded-2xl h-full flex flex-col shadow-xl">
-      <div className="p-4 border-b border-slate-800">
-        <div className="text-sm font-semibold text-slate-50">EnviroWatch</div>
+    <Card className="glass-panel rounded-2xl h-full flex flex-col">
+      <div className="p-4 border-b border-white/[0.06]">
+        <div className="text-sm font-semibold tracking-tight text-slate-50">EnviroWatch</div>
         <div className="text-xs text-slate-400">{city}</div>
       </div>
 
       <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-3">
-          {messages.map((msg) => (
-            <div
+          {messages.map((msg, i) => (
+            <motion.div
               key={msg.id}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1], delay: Math.min(i, 4) * 0.04 }}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`text-sm rounded-2xl px-3 py-2 max-w-[80%] ${
+                className={`text-sm rounded-2xl px-3 py-2 max-w-[80%] leading-relaxed ${
                   msg.role === "user"
-                    ? "bg-blue-500/90 text-white rounded-br-none"
-                    : "bg-slate-800/80 text-slate-200 rounded-bl-none"
+                    ? "bg-blue-500/90 text-white rounded-br-md"
+                    : "bg-white/[0.05] border border-white/[0.06] text-slate-200 rounded-bl-md"
                 }`}
               >
                 {msg.text}
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </ScrollArea>
 
-      <div className="p-4 border-t border-slate-800 flex gap-2">
+      <div className="p-4 border-t border-white/[0.06] flex gap-2">
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -229,9 +228,9 @@ export function ChatPanel() {
             }
           }}
           placeholder="Type a command..."
-          className="bg-slate-900/50 border-slate-700 text-slate-50"
+          className="bg-white/[0.03] border-white/[0.08] text-slate-50 placeholder:text-slate-500 focus-visible:ring-blue-500/30 focus-visible:border-blue-500/50"
         />
-        <Button onClick={handleSend} size="icon" className="bg-blue-500 hover:bg-blue-600">
+        <Button onClick={handleSend} size="icon" className="bg-blue-500 hover:bg-blue-600 shrink-0">
           <Send className="h-4 w-4" />
         </Button>
       </div>

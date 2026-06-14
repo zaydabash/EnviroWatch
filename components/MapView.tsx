@@ -19,7 +19,6 @@ type MapViewProps = {
 export function MapView({ center, stations, radiusKm, selectedId, onSelect }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const markersRef = useRef<maplibregl.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -151,6 +150,9 @@ export function MapView({ center, stations, radiusKm, selectedId, onSelect }: Ma
         map.current = null;
       }
     };
+    // Map is created once on mount; subsequent prop changes are applied via the
+    // dedicated effects below rather than recreating the map instance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update center
@@ -211,13 +213,13 @@ export function MapView({ center, stations, radiusKm, selectedId, onSelect }: Ma
   }, [selectedId]);
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-800 shadow-xl">
+    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_8px_30px_-12px_rgb(0_0_0/0.6)]">
       <div ref={mapContainer} className="w-full h-full" />
-      
+
       {/* Location pill */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full border border-slate-700 bg-slate-900/90 px-4 py-1 text-xs text-slate-200 backdrop-blur">
-        <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-        <span>
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full border border-white/[0.06] bg-slate-900/80 px-4 py-1.5 text-xs text-slate-200 backdrop-blur-xl shadow-[0_8px_30px_-12px_rgb(0_0_0/0.6)]">
+        <div className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+        <span className="tabular-nums">
           {center[1].toFixed(4)}, {center[0].toFixed(4)}
         </span>
       </div>

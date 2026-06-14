@@ -17,17 +17,23 @@ export function Legend({ radiusKm, stationsCount }: LegendProps) {
   ];
 
   return (
-    <Card className="bg-slate-900/90 border-slate-800 rounded-xl p-3 backdrop-blur shadow-lg">
-      <div className="text-xs font-semibold text-slate-50 mb-2">Map Legend</div>
-      <div className="space-y-2 text-xs text-slate-400">
-        <div>Radius: {radiusKm} km</div>
-        <div>Stations: {stationsCount}</div>
-        <div className="pt-2 border-t border-slate-800 space-y-1.5">
+    <Card className="glass-panel rounded-xl p-3">
+      <div className="text-xs font-semibold tracking-tight text-slate-50 mb-2">Map Legend</div>
+      <div className="space-y-1.5 text-xs text-slate-400">
+        <div className="flex justify-between gap-4">
+          <span>Radius</span>
+          <span className="tabular-nums text-slate-300">{radiusKm} km</span>
+        </div>
+        <div className="flex justify-between gap-4">
+          <span>Stations</span>
+          <span className="tabular-nums text-slate-300">{stationsCount}</span>
+        </div>
+        <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
           {bands.map((band) => (
             <div key={band.band} className="flex items-center gap-2">
               <div
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: band.color }}
+                className="h-2.5 w-2.5 rounded-full shrink-0"
+                style={{ backgroundColor: band.color, boxShadow: `0 0 8px 0 ${band.color}66` }}
               />
               <span className="text-[10px]">{band.label}</span>
             </div>
