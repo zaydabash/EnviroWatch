@@ -122,7 +122,7 @@ export function DetailsPanel() {
 
   if (!selectedStation) {
     return (
-      <Card className="glass-panel rounded-2xl h-full flex flex-col items-center justify-center p-8">
+      <Card className="glass-panel rounded-xl h-full flex flex-col items-center justify-center p-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -149,7 +149,7 @@ export function DetailsPanel() {
   }));
 
   return (
-    <Card className="glass-panel rounded-2xl h-full flex flex-col overflow-hidden">
+    <Card className="glass-panel rounded-xl h-full flex flex-col overflow-hidden">
       <motion.div
         key={selectedId}
         initial={{ opacity: 0, y: 10 }}
@@ -157,7 +157,7 @@ export function DetailsPanel() {
         transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
         className="flex flex-col h-full overflow-y-auto"
       >
-        {/* Header pill */}
+        {/* Header */}
         <div className="p-4 border-b border-white/[0.06]">
           {selectedStation.anomaly && selectedStation.anomaly >= 75 ? (
             <Badge className="bg-violet-500/10 text-violet-400 border-violet-500/20 mb-3">
@@ -180,7 +180,7 @@ export function DetailsPanel() {
             <div>
               <div className="text-[10px] tracking-[0.2em] text-slate-500 uppercase mb-1">AQI</div>
               <div className="flex items-center gap-2">
-                <span className="text-2xl font-bold tabular-nums text-slate-50">{selectedStation.aqi}</span>
+                <span className="text-2xl font-semibold tabular-nums text-slate-50">{selectedStation.aqi}</span>
                 <Badge className={getBandColor(selectedStation.band)}>
                   {selectedStation.band}
                 </Badge>
@@ -206,11 +206,11 @@ export function DetailsPanel() {
             <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/[0.06]">
               <div>
                 <div className="text-[10px] tracking-[0.2em] text-slate-500 uppercase mb-1">Temperature</div>
-                <div className="text-lg font-semibold tabular-nums text-slate-50">{Math.round(weather.tempC)}°C</div>
+                <div className="text-lg font-medium tabular-nums text-slate-50">{Math.round(weather.tempC)}°C</div>
               </div>
               <div>
                 <div className="text-[10px] tracking-[0.2em] text-slate-500 uppercase mb-1">Wind Speed</div>
-                <div className="text-lg font-semibold tabular-nums text-slate-50">{Math.round(weather.windKph)} kph</div>
+                <div className="text-lg font-medium tabular-nums text-slate-50">{Math.round(weather.windKph)} kph</div>
               </div>
             </div>
           )}

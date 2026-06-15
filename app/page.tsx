@@ -109,11 +109,20 @@ function HomeContent() {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {/* Decorative background: rotating gradient mesh + confetti dot field */}
+      <div aria-hidden className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div className="bg-aurora" />
+        <div className="bg-aurora-2" />
+        <div className="bg-confetti" />
+      </div>
+
       {/* Top header */}
-      <header className="border-b border-white/[0.06] bg-slate-950/60 backdrop-blur-xl sticky top-0 z-30">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      <header className="header-surface relative z-30 border-b border-white/[0.08] sticky top-0 overflow-hidden">
+        <div className="h-[2px] w-full bg-gradient-to-r from-indigo-300 via-fuchsia-300 to-orange-300 opacity-90" />
+        <div className="absolute inset-0 bg-slate-950/35 backdrop-blur-sm pointer-events-none" />
+        <div className="container relative mx-auto px-4 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 shrink-0">
-            <div className="text-sm font-semibold tracking-tight text-slate-50">EnviroWatch</div>
+            <div className="text-sm font-medium tracking-tight text-slate-50">EnviroWatch</div>
             <div className="h-1 w-1 rounded-full bg-slate-600" />
             <div className="flex items-center gap-1.5">
               <div className="relative h-1.5 w-1.5">
@@ -134,34 +143,34 @@ function HomeContent() {
             />
           </div>
 
-          <div className="text-xs text-slate-300 px-3 py-1 rounded-full bg-white/[0.04] border border-white/[0.06] shrink-0">
+          <div className="gradient-sheen text-xs font-medium text-white px-3 py-1 rounded-md shrink-0 shadow-[0_4px_20px_-6px_rgb(0_0_0/0.6)]">
             {city}
           </div>
         </div>
       </header>
 
       {/* Main content */}
-      <main className="flex-1 container mx-auto px-4 py-4">
-        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr_400px] gap-4 h-[calc(100vh-120px)]">
+      <main className="relative z-10 flex-1 container mx-auto px-4 py-4 min-w-0">
+        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr_400px] gap-4 h-[calc(100vh-120px)] min-w-0">
           {/* Chat Panel */}
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="hidden lg:block"
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+            className="hidden lg:block min-w-0"
           >
             <ChatPanel />
           </motion.div>
 
           {/* Map */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="relative"
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: 0.05 }}
+            className="relative min-w-0"
           >
             {loading && stations.length === 0 ? (
-              <Skeleton className="w-full h-full rounded-2xl" />
+              <Skeleton className="w-full h-full rounded-xl" />
             ) : (
               <MapView
                 center={center}
@@ -175,10 +184,10 @@ function HomeContent() {
 
           {/* Details Panel */}
           <motion.div
-            initial={{ opacity: 0, x: 20 }}
+            initial={{ opacity: 0, x: 16 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="hidden lg:block"
+            transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
+            className="hidden lg:block min-w-0"
           >
             <DetailsPanel />
           </motion.div>
@@ -189,7 +198,7 @@ function HomeContent() {
           <ChatPanel />
           <div className="h-[400px]">
             {loading && stations.length === 0 ? (
-              <Skeleton className="w-full h-full rounded-2xl" />
+              <Skeleton className="w-full h-full rounded-xl" />
             ) : (
               <MapView
                 center={center}

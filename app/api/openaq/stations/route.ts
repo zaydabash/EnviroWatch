@@ -79,7 +79,7 @@ async function geocodeCity(
 
   const res = await fetch(url, {
     headers: { "User-Agent": "EnviroWatch/1.0 (portfolio app)" },
-    cache: "no-store",
+    next: { revalidate: 3600 },
   });
 
   if (!res.ok) return null;
@@ -116,19 +116,25 @@ export async function GET(req: Request) {
 
     const locRes = await fetch(locationsUrl, {
       headers: openAqHeaders(),
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!locRes.ok) {
       const text = await locRes.text();
       console.error("OpenAQ /v3/locations failed", locRes.status, text);
+      if (locRes.status === 429) {
+        return NextResponse.json(
+          { error: "OpenAQ rate limit exceeded, please try again shortly", upstreamStatus: 429 },
+          { status: 429 },
+        );
+      }
       return NextResponse.json(
         {
           error: "OpenAQ locations endpoint failed",
           upstreamStatus: locRes.status,
           upstreamBody: text,
         },
-        { status: 500 }
+        { status: 502 }
       );
     }
 
@@ -151,7 +157,7 @@ export async function GET(req: Request) {
 
       const latestRes = await fetch(latestUrl, {
         headers: openAqHeaders(),
-        cache: "no-store",
+        next: { revalidate: 60 },
       });
 
       if (!latestRes.ok) {

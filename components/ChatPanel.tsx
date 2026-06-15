@@ -62,135 +62,103 @@ export function ChatPanel() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    // Parse commands
-    const text = input.trim().toLowerCase();
+    // Parse commands - input may contain multiple comma-separated commands
+    const segments = input
+      .trim()
+      .toLowerCase()
+      .split(",")
+      .map((segment) => segment.trim())
+      .filter(Boolean);
 
-    // set city <name>
-    const cityMatch = text.match(/set city (.+)/);
-    if (cityMatch) {
-      const cityName = cityMatch[1].trim();
-      setCity(cityName);
+    const responses: string[] = [];
+    let shouldRefresh = false;
+
+    for (const text of segments) {
+      // set city <name>
+      const cityMatch = text.match(/^set city (.+)/);
+      if (cityMatch) {
+        const cityName = cityMatch[1].trim();
+        setCity(cityName);
+        shouldRefresh = true;
+        responses.push(`City set to ${cityName}.`);
+        continue;
+      }
+
+      // filter aqi > <N>
+      const aqiMatch = text.match(/^filter aqi > (\d+)/);
+      if (aqiMatch) {
+        const threshold = parseInt(aqiMatch[1], 10);
+        setThreshold(threshold);
+        responses.push(`Showing stations with AQI > ${threshold}.`);
+        continue;
+      }
+
+      // radius <km>
+      const radiusMatch = text.match(/^radius (\d+)/);
+      if (radiusMatch) {
+        const km = parseInt(radiusMatch[1], 10);
+        setRadius(km);
+        responses.push(`Radius set to ${km} km.`);
+        continue;
+      }
+
+      // show anomalies
+      if (text === "show anomalies") {
+        if (!showAnomaliesOnly) {
+          toggleAnomaliesOnly();
+        }
+        responses.push("Highlighting anomalous stations.");
+        continue;
+      }
+
+      // hide anomalies
+      if (text === "hide anomalies") {
+        if (showAnomaliesOnly) {
+          toggleAnomaliesOnly();
+        }
+        responses.push("Showing all stations.");
+        continue;
+      }
+
+      // select <id> or select "<name>"
+      const selectMatch = text.match(/^select (.+)/);
+      if (selectMatch) {
+        const query = selectMatch[1].trim().replace(/["']/g, "");
+        const station = stations.find(
+          (s) => s.id === query || s.name.toLowerCase().includes(query.toLowerCase())
+        );
+        if (station) {
+          setSelected(station.id);
+          responses.push(`Selected station: ${station.name}.`);
+        } else {
+          responses.push(`Station not found: ${query}.`);
+        }
+        continue;
+      }
+
+      // Unrecognized segment
+      responses.push(`Didn't understand "${text}" - use one of the commands above to change the view.`);
+    }
+
+    if (shouldRefresh) {
       refreshAll();
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "system",
-          text: `City set to ${cityName} and data refreshed.`,
-        },
-      ]);
-      return;
+      responses.push("Data refreshed.");
     }
 
-    // filter aqi > <N>
-    const aqiMatch = text.match(/filter aqi > (\d+)/);
-    if (aqiMatch) {
-      const threshold = parseInt(aqiMatch[1], 10);
-      setThreshold(threshold);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "system",
-          text: `Showing stations with AQI > ${threshold}.`,
-        },
-      ]);
-      return;
-    }
-
-    // radius <km>
-    const radiusMatch = text.match(/radius (\d+)/);
-    if (radiusMatch) {
-      const km = parseInt(radiusMatch[1], 10);
-      setRadius(km);
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "system",
-          text: `Radius set to ${km} km.`,
-        },
-      ]);
-      return;
-    }
-
-    // show anomalies
-    if (text.includes("show anomalies")) {
-      if (!showAnomaliesOnly) {
-        toggleAnomaliesOnly();
-      }
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "system",
-          text: "Highlighting anomalous stations.",
-        },
-      ]);
-      return;
-    }
-
-    // hide anomalies
-    if (text.includes("hide anomalies")) {
-      if (showAnomaliesOnly) {
-        toggleAnomaliesOnly();
-      }
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: "system",
-          text: "Showing all stations.",
-        },
-      ]);
-      return;
-    }
-
-    // select <id> or select "<name>"
-    const selectMatch = text.match(/select (.+)/);
-    if (selectMatch) {
-      const query = selectMatch[1].trim().replace(/["']/g, "");
-      const station = stations.find(
-        (s) => s.id === query || s.name.toLowerCase().includes(query.toLowerCase())
-      );
-      if (station) {
-        setSelected(station.id);
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "system",
-            text: `Selected station: ${station.name}.`,
-          },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: "system",
-            text: `Station not found: ${query}.`,
-          },
-        ]);
-      }
-      return;
-    }
-
-    // Default response
     setMessages((prev) => [
       ...prev,
-      {
-        id: (Date.now() + 1).toString(),
-        role: "system",
-        text: "Got it - use one of the commands above to change the view.",
-      },
+      ...responses.map((text, i) => ({
+        id: `${Date.now() + 1}-${i}`,
+        role: "system" as const,
+        text,
+      })),
     ]);
   };
 
   return (
-    <Card className="glass-panel rounded-2xl h-full flex flex-col">
+    <Card className="glass-panel rounded-xl h-full flex flex-col">
       <div className="p-4 border-b border-white/[0.06]">
-        <div className="text-sm font-semibold tracking-tight text-slate-50">EnviroWatch</div>
+        <div className="text-sm font-medium tracking-tight text-slate-50">EnviroWatch</div>
         <div className="text-xs text-slate-400">{city}</div>
       </div>
 
@@ -205,7 +173,7 @@ export function ChatPanel() {
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
               <div
-                className={`text-sm rounded-2xl px-3 py-2 max-w-[80%] leading-relaxed ${
+                className={`text-sm rounded-xl px-3 py-2 max-w-[80%] leading-relaxed ${
                   msg.role === "user"
                     ? "bg-blue-500/90 text-white rounded-br-md"
                     : "bg-white/[0.05] border border-white/[0.06] text-slate-200 rounded-bl-md"

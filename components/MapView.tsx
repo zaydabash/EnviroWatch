@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { circle } from "@turf/turf";
+import { MapPin } from "lucide-react";
 import type { Station } from "@/types";
 import { getMapStyleUrl } from "@/lib/geo";
 import { Legend } from "./Legend";
@@ -213,15 +214,24 @@ export function MapView({ center, stations, radiusKm, selectedId, onSelect }: Ma
   }, [selectedId]);
 
   return (
-    <div className="relative w-full h-full rounded-2xl overflow-hidden border border-white/[0.06] shadow-[0_8px_30px_-12px_rgb(0_0_0/0.6)]">
+    <div className="relative w-full h-full rounded-xl overflow-hidden border border-white/[0.06] shadow-[0_8px_30px_-12px_rgb(0_0_0/0.6)]">
       <div ref={mapContainer} className="w-full h-full" />
 
-      {/* Location pill */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-full border border-white/[0.06] bg-slate-900/80 px-4 py-1.5 text-xs text-slate-200 backdrop-blur-xl shadow-[0_8px_30px_-12px_rgb(0_0_0/0.6)]">
-        <div className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+      {/* Coordinates */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 rounded-md border border-white/[0.06] bg-slate-900/80 px-3 py-1.5 text-xs text-slate-300 backdrop-blur-xl shadow-[0_8px_30px_-12px_rgb(0_0_0/0.6)]">
+        <MapPin className="h-3 w-3 text-slate-500" />
         <span className="tabular-nums">
           {center[1].toFixed(4)}, {center[0].toFixed(4)}
         </span>
+      </div>
+
+      {/* Live indicator */}
+      <div className="absolute bottom-4 left-4 z-20 flex items-center gap-1.5">
+        <div className="relative h-1.5 w-1.5">
+          <div className="absolute inset-0 rounded-full bg-blue-400 animate-ping opacity-75" />
+          <div className="absolute inset-0 rounded-full bg-blue-400" />
+        </div>
+        <span className="text-xs text-slate-300 [text-shadow:0_1px_6px_rgb(0_0_0/0.9)]">Live</span>
       </div>
 
       {/* Legend */}

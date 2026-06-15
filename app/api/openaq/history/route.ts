@@ -37,8 +37,10 @@ const locationSchema = z.object({
 
 // schema for measurements
 const measurementSchema = z.object({
-  value: z.number(),
-  datetimeFrom: z.object({ utc: z.string() }),
+  value: z.number().nullable(),
+  period: z.object({
+    datetimeFrom: z.object({ utc: z.string() }),
+  }),
 });
 
 const measurementsResponseSchema = z.object({
@@ -69,7 +71,7 @@ export async function GET(req: Request) {
     // Get the station's sensors to find the requested sensor
     const locRes = await fetch(`${OPENAQ_BASE}/locations/${locId}`, {
       headers: openAqHeaders(),
-      cache: "no-store",
+      next: { revalidate: 300 },
     });
 
     if (!locRes.ok) {
@@ -81,10 +83,16 @@ export async function GET(req: Request) {
           { status: 404 },
         );
       }
+      if (locRes.status === 429) {
+        return NextResponse.json(
+          { error: "OpenAQ rate limit exceeded, please try again shortly", upstreamStatus: 429 },
+          { status: 429 },
+        );
+      }
       console.error("OpenAQ /v3/locations/{id} failed", locRes.status, txt);
       return NextResponse.json(
         { error: "Location lookup failed", upstreamStatus: locRes.status },
-        { status: 500 },
+        { status: 502 },
       );
     }
 
@@ -113,7 +121,7 @@ export async function GET(req: Request) {
 
     const measRes = await fetch(measUrl, {
       headers: openAqHeaders(),
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
 
     if (!measRes.ok) {
@@ -123,13 +131,19 @@ export async function GET(req: Request) {
         measRes.status,
         txt,
       );
+      if (measRes.status === 429) {
+        return NextResponse.json(
+          { error: "OpenAQ rate limit exceeded, please try again shortly", upstreamStatus: 429 },
+          { status: 429 },
+        );
+      }
       return NextResponse.json(
         {
           error: "Measurements fetch failed",
           upstreamStatus: measRes.status,
           upstreamBody: txt,
         },
-        { status: 500 },
+        { status: 502 },
       );
     }
 
@@ -137,9 +151,10 @@ export async function GET(req: Request) {
     const parsedMeas = measurementsResponseSchema.parse(measJson);
 
     const series: SeriesPoint[] = parsedMeas.results
+      .filter((r) => r.value !== null)
       .map((r) => ({
-        time: r.datetimeFrom.utc,
-        value: r.value,
+        time: r.period.datetimeFrom.utc,
+        value: r.value as number,
       }))
       .sort(
         (a, b) => new Date(a.time).getTime() - new Date(b.time).getTime(),

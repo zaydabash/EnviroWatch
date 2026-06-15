@@ -78,11 +78,14 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         }
       );
 
+      const stationsData = await stationsRes.json();
+
       if (!stationsRes.ok) {
-        throw new Error(`Failed to fetch stations: ${stationsRes.statusText}`);
+        throw new Error(
+          stationsData.error || `Failed to fetch stations: ${stationsRes.statusText}`,
+        );
       }
 
-      const stationsData = await stationsRes.json();
       if (stationsData.error) {
         throw new Error(stationsData.error);
       }
